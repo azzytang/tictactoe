@@ -30,9 +30,14 @@
  * onRoomStart
  * @returns {BoardGameResult}
  */
-function onRoomStart() {
+ function onRoomStart() {
   console.log("onRoomStart")
-  return {};
+  return {
+    state: {
+      playerIdToHand: {},
+      winner: null,
+  }
+}
 }
 
 /**
@@ -42,9 +47,26 @@ function onRoomStart() {
  * @returns {BoardGameResult}
  */
 function onPlayerJoin(player, boardGame) {
-  console.log("onPlayerJoin", player, boardGame)
-  return {};
+  console.log("onPlayerJoin", player, boardGame);
+
+  const currentState = boardGame.state;
+  const currentPlayerIdToHand = currentState.playerIdToHand;
+  currentPlayerIdToHand[player.id] = null;
+
+  if (Object.keys(currentPlayerIdToHand).length === 2){
+    return{
+ 
+      state: currentState,
+      joinable: false
+    };
+  };
+  return {
+    state: currentState
+  }
 }
+
+
+
 
 /**
  * onPlayerMove
@@ -54,8 +76,47 @@ function onPlayerJoin(player, boardGame) {
  * @returns {BoardGameResult}
  */
 function onPlayerMove(player, move, boardGame) {
+  const currentState = boardGame.state;
+  const currentPlayerIdToHand = currentState.playerIdToHand;
   console.log("onPlayerJoin", player, move, boardGame)
-  return {};
+  currentPlayerIdToHand[player.id] = move.hand
+  const {players} = boardGame
+  
+  const allPlayerMoved = Object.values(currentPlayerIdToHand).every((e)=> e)
+  const hands = Object.values(currentPlayerIdToHand)
+  if (allPlayerMoved) {
+    if (hands[0] === hands[1]){
+      currentState.winner='no one'} 
+    else if (hands[0] === 'rock') {
+        if (hands[1]=== 'paper') {
+          currentState.winner= players[1].username
+      } else {
+          currentState.winner= players[0].username
+      }
+    } else if (hands[0]=== 'paper'){
+        if (hands[1] === 'rock') {
+          currentState.winner=  players[0].username
+        } else {
+          currentState.winner= players[1].username
+        }
+    } else {
+        if (hands[1] === 'rock') {
+          currentState.winner= players[1].username
+        } else {
+          currentState.winner= players[0].username
+        }
+    }
+    return {
+      state: currentState,
+      finished: true
+    }
+
+  }
+  return {
+
+    state: currentState
+    
+  };
 }
 
 /**
@@ -66,7 +127,10 @@ function onPlayerMove(player, move, boardGame) {
  */
 function onPlayerQuit(player, boardGame) {
   console.log("onPlayerQuit", player, boardGame)
-  return {};
+
+  return {
+
+  };
 }
 
 module.exports = {
@@ -75,3 +139,5 @@ module.exports = {
   onPlayerMove,
   onPlayerQuit,
 };
+
+
